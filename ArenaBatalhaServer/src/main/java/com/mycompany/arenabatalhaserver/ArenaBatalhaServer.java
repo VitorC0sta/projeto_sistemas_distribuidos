@@ -9,7 +9,6 @@ import java.io.IOException;
 public class ArenaBatalhaServer {
 
     public static void main(String[] args) {
-        // A porta padrão que o seu professor usou
         int porta = 6789; 
         
         System.out.println("Iniciando o Lançador do Servidor...");

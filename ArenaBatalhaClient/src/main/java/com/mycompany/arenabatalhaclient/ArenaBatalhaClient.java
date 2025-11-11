@@ -1,16 +1,20 @@
 /*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Ponto de entrada principal da aplicação Cliente.
  */
-
 package com.mycompany.arenabatalhaclient;
 
 /**
- *
  * @author vitor
  */
 public class ArenaBatalhaClient {
 
     public static void main(String[] args) {
-        System.out.println("Hello World!");
+        // Isso agenda a criação da nossa janela (GameUI)
+        // na thread correta de interface gráfica do Java.
+        java.awt.EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                new GameUI().setVisible(true);
+            }
+        });
     }
 }

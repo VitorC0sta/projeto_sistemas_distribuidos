@@ -1,5 +1,7 @@
-com\mycompany\arenabatalhaserver\GameServerCore$GameState.class
-com\mycompany\arenabatalhaserver\GameServerCore.class
-com\mycompany\arenabatalhaserver\GameServerHandler.class
-com\mycompany\arenabatalhaserver\ArenaBatalhaServer.class
-com\mycompany\arenabatalhaserver\ServerConnection.class
+com/mycompany/arenabatalhaserver/GameServerCore.class
+com/mycompany/arenabatalhaserver/ArenaBatalhaServer.class
+com/mycompany/arenabatalhaserver/GameServerCore$GameState.class
+com/mycompany/arenabatalhaserver/GameServerHandler.class
+com/mycompany/arenabatalhaserver/ServerConnection.class
+com/mycompany/arenabatalhaserver/GameServerCore$PokemonData.class
+com/mycompany/arenabatalhaserver/GameServerCore$Tipo.class
