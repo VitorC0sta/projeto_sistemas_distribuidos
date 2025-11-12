@@ -1,346 +1,287 @@
 package com.mycompany.arenabatalhaclient;
 
+import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GridLayout;
+import java.awt.Image;
 import javax.swing.JButton;
 import javax.swing.ImageIcon;
+import javax.swing.BorderFactory;
+import javax.swing.border.Border;
+import javax.swing.JPanel;
+import javax.swing.JLabel;
+import javax.swing.SwingConstants;
+import java.awt.BorderLayout;
 
-public class SelectionPanel extends javax.swing.JPanel {
+/**
+ * ESSENCIAL: O painel (JPanel) que mostra a grelha de 12 Pokémon.
+ * Esta classe gere a seleção visual (bordas verdes/vermelhas),
+ * desativa os botões após a escolha e envia a mensagem "ESCOLHEU"
+ * para o GameUI (que a passa ao servidor).
+ */
+public class SelectionPanel extends JPanel { 
 
-    // Referência ao "Pai" (o GameUI)
+    // Referência ao "Pai" (o GameUI) para enviar mensagens
     private GameUI parentUI;
-    // Array para facilitar o acesso a todos os botões
+    
+    // --- Array para os 12 botões ---
     private JButton[] allButtons;
+    
+    // --- Lógica de Seleção ---
+    private String pokemonSelecionado = null;
+    private JButton botaoSelecionado = null;
+    private Border bordaPadrao;
+    private Border bordaSelecionada;
+    
+     private boolean oponenteConectado = false;
+    
+    // --- Componentes Visuais ---
+    private JLabel lblLog;
+    private JButton btnPronto;
+    private JPanel painelDaGrade;
 
-    /**
-     * Creates new form SelectionPanel
-     */
     public SelectionPanel(GameUI parent) {
         this.parentUI = parent;
-        initComponents(); // Este método desenha os componentes do NetBeans
         
-        // 1. Agrupa todos os botões em um array para fácil manipulação
-        allButtons = new JButton[]{
-            btnCharmander, btnVulpix, btnSquirtle, btnStaryu,
-            btnTreecko, btnElekid, btnPikachu, btnDiglett,
-            btnWooper, btnNumel, btnRowlet, btnEmolga
+        // --- 1. Configurações do Painel Principal (este JPanel) ---
+        this.setLayout(new BorderLayout(10, 10)); 
+        this.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        // --- 2. Cria o Painel da Grade (para os 12 botões) ---
+        painelDaGrade = new JPanel(new GridLayout(3, 4, 10, 10)); // 3 linhas, 4 col, 10px de espaço
+        
+        // --- 3. Cria os Nomes dos Pokémon (na ordem) ---
+        String[] nomesPokemon = {
+            "Charmander", "Vulpix", "Squirtle", "Staryu",
+            "Treecko", "Elekid", "Pikachu", "Diglett",
+            "Wooper", "Numel", "Rowlet", "Emolga"
         };
         
-        // 2. Carrega os ícones nos botões
+        allButtons = new JButton[12];
+        
+        // --- 4. Cria os 12 botões em um loop ---
+        for (int i = 0; i < 12; i++) {
+            String nome = nomesPokemon[i];
+            JButton btn = new JButton(); 
+            
+            // Adiciona o "ActionListener" (evento de clique)
+            btn.addActionListener(e -> {
+                selecionarPokemon(nome, btn); // Chama nossa lógica de seleção
+            });
+            
+            allButtons[i] = btn; // Guarda no array
+            painelDaGrade.add(btn); // Adiciona na grade
+        }
+        
+        // --- 5. Cria o Log e o Botão Pronto ---
+        lblLog = new JLabel("Escolha seu Pokémon...");
+        lblLog.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        lblLog.setHorizontalAlignment(SwingConstants.CENTER);
+
+        btnPronto = new JButton("Pronto");
+        btnPronto.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        btnPronto.setEnabled(false); // Começa desativado
+        btnPronto.addActionListener(e -> {
+            if (this.pokemonSelecionado != null) {
+                enviarEscolha();
+            }
+        });
+        
+        // --- 6. Adiciona os componentes ao Painel Principal ---
+        this.add(painelDaGrade, BorderLayout.CENTER);
+        
+        JPanel painelSul = new JPanel(new BorderLayout());
+        painelSul.add(lblLog, BorderLayout.NORTH);
+        painelSul.add(btnPronto, BorderLayout.SOUTH);
+        
+        this.add(painelSul, BorderLayout.SOUTH);
+        
+        // --- 7. Define as Bordas e Carrega os Ícones ---
+        this.bordaPadrao = allButtons[0].getBorder(); // Pega uma borda padrão
+        this.bordaSelecionada = BorderFactory.createLineBorder(Color.GREEN, 3);
+        
         loadButtonIcons();
     }
     
     /**
-     * Carrega os ícones da sua pasta /assets/icons/ nos botões.
-     * Os botões devem ter os ícones com os nomes exatos.
+     * Carrega os ícones E FORÇA O TAMANHO DA IMAGEM
      */
     private void loadButtonIcons() {
-        // Bloco try-catch para evitar que o programa quebre se um ícone faltar
+        Dimension buttonSize = new Dimension(100, 100);
+        int iconWidth = 90;
+        int iconHeight = 90;
+        int specialWidth = 50;
+        int specialHeight = 50;
+        String iconsPath = "/assets/icons/";
+
         try {
-            // Linha 1: Fogo e Água
-            btnCharmander.setIcon(new ImageIcon(getClass().getResource("/assets/icons/charmander.png")));
-            btnVulpix.setIcon(new ImageIcon(getClass().getResource("/assets/icons/vulpix.png")));
-            btnSquirtle.setIcon(new ImageIcon(getClass().getResource("/assets/icons/squirtle.png")));
-            btnStaryu.setIcon(new ImageIcon(getClass().getResource("/assets/icons/staryu.png")));
-            
-            // Linha 2: Planta e Elétrico
-            btnTreecko.setIcon(new ImageIcon(getClass().getResource("/assets/icons/treecko.png")));
-            btnElekid.setIcon(new ImageIcon(getClass().getResource("/assets/icons/elekid.png")));
-            btnPikachu.setIcon(new ImageIcon(getClass().getResource("/assets/icons/pikachu.png")));
-            btnDiglett.setIcon(new ImageIcon(getClass().getResource("/assets/icons/diglett.png")));
-            
-            // Linha 3: Duplos
-            btnWooper.setIcon(new ImageIcon(getClass().getResource("/assets/icons/wooper.png")));
-            btnNumel.setIcon(new ImageIcon(getClass().getResource("/assets/icons/numel.png")));
-            btnRowlet.setIcon(new ImageIcon(getClass().getResource("/assets/icons/rowlet.png")));
-            btnEmolga.setIcon(new ImageIcon(getClass().getResource("/assets/icons/emolga.png")));
-            
-            // Remove o texto de todos os botões para mostrar só o ícone
-            for (JButton btn : allButtons) {
-                btn.setText("");
-                btn.setPreferredSize(new Dimension(100, 100)); // Define um tamanho padrão
+            String[] nomesPokemon = {
+                "charmander.png", "vulpix.png", "squirtle.png", "staryu.png",
+                "treecko.png", "elekid.png", "pikachu.png", "diglett.png",
+                "wooper.png", "numel.png", "rowlet.png", "emolga.png"
+            };
+
+            for (int i = 0; i < 12; i++) {
+                JButton btn = allButtons[i];
+                String iconFile = nomesPokemon[i];
+                
+                ImageIcon icon;
+                
+                if (iconFile.equals("treecko.png") || iconFile.equals("numel.png")) {
+                    icon = loadAndResizeIcon(iconsPath + iconFile, specialWidth, specialHeight);
+                } else {
+                    icon = loadAndResizeIcon(iconsPath + iconFile, iconWidth, iconHeight);
+                }
+                if (icon != null) {
+                    btn.setIcon(icon);
+                }
+                
+                btn.setPreferredSize(buttonSize);
+                btn.setMinimumSize(buttonSize);
+                btn.setMaximumSize(buttonSize);
             }
             
         } catch (Exception e) {
-            System.err.println("Erro ao carregar ícones: " + e.getMessage());
+            System.err.println("Erro ao carregar ícones| " + e.getMessage());
             lblLog.setText("Erro ao carregar ícones. Verifique os nomes.");
-            // e.printStackTrace(); // Descomente para ver o erro completo
+            e.printStackTrace(); 
         }
+    }
+    
+    /**
+     * Função de ajuda para carregar e redimensionar um ícone.
+     */
+    private ImageIcon loadAndResizeIcon(String path, int width, int height) {
+        java.net.URL imgUrl = getClass().getResource(path);
+        if (imgUrl == null) {
+             System.err.println("Não foi possível encontrar| " + path);
+             return null;
+        }
+        ImageIcon originalIcon = new ImageIcon(imgUrl);
+        Image image = originalIcon.getImage();
+        Image resizedImage = image.getScaledInstance(width, height, java.awt.Image.SCALE_SMOOTH);
+        return new ImageIcon(resizedImage);
     }
     
     /**
      * Método que o GameUI vai chamar para nos dar feedback do servidor.
      */
     public void atualizarLog(String mensagem) {
-        lblLog.setText(mensagem); // 'lblLog' é o nome do seu JLabel
+        lblLog.setText(mensagem); 
     }
     
+    // --- LÓGICA DE SELEÇÃO E ENVIO ---
+    
     /**
-     * O método-chave que é chamado por qualquer botão.
+     * ESSENCIAL: Chamado quando um botão de Pokémon é clicado.
+     * Atualiza a seleção visual (bordas) e ativa o botão "Pronto".
      */
-    private void enviarEscolha(String nomePokemon) {
-        // 1. Cria a mensagem no formato STRING
-        String mensagem = "ESCOLHEU:" + nomePokemon;
+    private void selecionarPokemon(String nome, JButton botaoClicado) {
+        this.pokemonSelecionado = nome;
+        this.botaoSelecionado = botaoClicado;
         
-        // 2. Pede ao "Pai" (GameUI) para enviar
+        // Limpa todas as bordas
+        for (JButton btn : allButtons) {
+            btn.setBorder(bordaPadrao);
+        }
+        
+        // Destaca o selecionado
+        botaoClicado.setBorder(bordaSelecionada);
+        lblLog.setText("Você selecionou [" + nome + "]. Clique em 'Pronto'!");
+        btnPronto.setEnabled(this.oponenteConectado);
+    }
+
+    /**
+     * ESSENCIAL: Chamado pelo botão "Pronto".
+     * Envia a escolha para o servidor (via GameUI) e desativa
+     * todos os botões para impedir uma segunda escolha.
+     */
+    private void enviarEscolha() {
+        // O servidor espera o nome com a primeira letra maiúscula (ex: "Charmander")
+        String nomePokemonServidor = pokemonSelecionado.substring(0, 1).toUpperCase() + pokemonSelecionado.substring(1);
+        
+        String mensagem = "ESCOLHEU|" + nomePokemonServidor;
+            
         parentUI.enviarParaServidor(mensagem);
         
-        // 3. Desativa os botões
+        // Define a borda como "confirmada" (vermelha)
+        Border bordaConfirmada = BorderFactory.createLineBorder(Color.RED, 3);
+        botaoSelecionado.setBorder(bordaConfirmada);
+        
         desativarTodosOsBotoes();
-        lblLog.setText("Você escolheu " + nomePokemon + "! Aguardando oponente...");
+        lblLog.setText("Você escolheu " + nomePokemonServidor + "! Aguardando oponente...");
     }
     
-    /**
-     * Passa por todos os botões no array e os desativa.
-     */
     private void desativarTodosOsBotoes() {
         for (JButton btn : allButtons) {
             if (btn != null) {
                 btn.setEnabled(false);
             }
         }
+        btnPronto.setEnabled(false);
     }
+    
+    // =========================================================================
+    // FUNÇÃO CRÍTICA DA CORREÇÃO (PARA O RELATÓRIO)
+    // =========================================================================
+    
+    /**
+     * ESSENCIAL (NOVO): Define o estado de conexão do oponente.
+     * Chamado pelo GameUI quando recebe a mensagem OPONENTE_ENCONTRADO.
+     * @param conectado True se o oponente estiver no slot P2.
+     */
+        public void setOponenteConectado(boolean conectado) {
+            this.oponenteConectado = conectado;
+
+            if (conectado) {
+                lblLog.setText("Oponente encontrado! Escolha seu Pokémon e clique em 'Pronto'.");
+
+                // Se um Pokémon já foi selecionado, ativamos o botão Pronto agora
+                if (this.pokemonSelecionado != null) {
+                    btnPronto.setEnabled(true);
+                }
+            } else {
+                // Oponente desconectou
+                lblLog.setText("Aguardando oponente...");
+                btnPronto.setEnabled(false);
+
+                // Limpa o log local se estiver esperando a escolha
+                if (this.pokemonSelecionado != null) {
+                    this.pokemonSelecionado = null;
+                    this.botaoSelecionado.setBorder(bordaPadrao);
+                    this.botaoSelecionado = null;
+                }
+            }
+        }
 
     /**
-     * Este código é gerado pelo NetBeans GUI Builder.
-     * Você pode copiar/colar isso na sua "Source View" ou
-     * recriar a grade 3x4 no "Design View".
+     * ESSENCIAL (NOVO): Reseta o painel de seleção para o estado inicial.
+     * Esta função é chamada pelo GameUI (no 'voltarParaSelecao')
+     * quando o jogador volta do GameOverPanel ou se reconecta.
+     * Ela REATIVA os botões, permitindo que o jogador faça uma
+     * nova escolha e envie a mensagem "ESCOLHEU" que o servidor está à espera.
      */
-    @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
-    private void initComponents() {
-
-        btnCharmander = new javax.swing.JButton();
-        btnVulpix = new javax.swing.JButton();
-        btnSquirtle = new javax.swing.JButton();
-        btnStaryu = new javax.swing.JButton();
-        btnTreecko = new javax.swing.JButton();
-        btnElekid = new javax.swing.JButton();
-        btnPikachu = new javax.swing.JButton();
-        btnDiglett = new javax.swing.JButton();
-        btnWooper = new javax.swing.JButton();
-        btnNumel = new javax.swing.JButton();
-        btnRowlet = new javax.swing.JButton();
-        btnEmolga = new javax.swing.JButton();
-        lblLog = new javax.swing.JLabel();
-
-        btnCharmander.setText("Charmander");
-        btnCharmander.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnCharmanderActionPerformed(evt);
+    public void resetState() {
+        // 1. Limpa o log
+        lblLog.setText("Oponente saiu ou jogo terminou. Reconectando...");
+        
+        // 2. Reseta a seleção
+        pokemonSelecionado = null;
+        if (botaoSelecionado != null) {
+            botaoSelecionado.setBorder(bordaPadrao);
+            botaoSelecionado = null;
+        }
+        
+        // 3. Reativa TODOS os botões
+        for (JButton btn : allButtons) {
+            if (btn != null) {
+                btn.setEnabled(true);
             }
-        });
-
-        btnVulpix.setText("Vulpix");
-        btnVulpix.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnVulpixActionPerformed(evt);
-            }
-        });
-
-        btnSquirtle.setText("Squirtle");
-        btnSquirtle.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnSquirtleActionPerformed(evt);
-            }
-        });
-
-        btnStaryu.setText("Staryu");
-        btnStaryu.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnStaryuActionPerformed(evt);
-            }
-        });
-
-        btnTreecko.setText("Treecko");
-        btnTreecko.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnTreeckoActionPerformed(evt);
-            }
-        });
-
-        btnElekid.setText("Elekid");
-        btnElekid.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnElekidActionPerformed(evt);
-            }
-        });
-
-        btnPikachu.setText("Pikachu");
-        btnPikachu.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnPikachuActionPerformed(evt);
-            }
-        });
-
-        btnDiglett.setText("Diglett");
-        btnDiglett.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnDiglettActionPerformed(evt);
-            }
-        });
-
-        btnWooper.setText("Wooper");
-        btnWooper.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnWooperActionPerformed(evt);
-            }
-        });
-
-        btnNumel.setText("Numel");
-        btnNumel.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnNumelActionPerformed(evt);
-            }
-        });
-
-        btnRowlet.setText("Rowlet");
-        btnRowlet.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnRowletActionPerformed(evt);
-            }
-        });
-
-        btnEmolga.setText("Emolga");
-        btnEmolga.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnEmolgaActionPerformed(evt);
-            }
-        });
-
-        lblLog.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        lblLog.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        lblLog.setText("Escolha seu Pokémon...");
-
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
-        this.setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(20, 20, 20)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(btnTreecko, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btnElekid, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btnPikachu, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btnDiglett, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(btnCharmander, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btnVulpix, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btnSquirtle, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btnStaryu, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(btnWooper, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btnNumel, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btnRowlet, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btnEmolga, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(20, Short.MAX_VALUE))
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(lblLog, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(20, 20, 20)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btnCharmander, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnVulpix, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnSquirtle, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnStaryu, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btnTreecko, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnElekid, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnPikachu, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnDiglett, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btnWooper, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnNumel, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnRowlet, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnEmolga, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
-                .addComponent(lblLog, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(20, Short.MAX_VALUE))
-        );
-    }// </editor-fold>//GEN-END:initComponents
-
+        }
+        
+        // 4. Garante que o botão 'Pronto' comece desativado
+        btnPronto.setEnabled(false); 
+    }
     
-    // --- Eventos de Clique ---
-    // Cada botão chama o "enviarEscolha" com seu respectivo nome.
-    
-    private void btnCharmanderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCharmanderActionPerformed
-        enviarEscolha("Charmander");
-    }//GEN-LAST:event_btnCharmanderActionPerformed
-
-    private void btnVulpixActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnVulpixActionPerformed
-        enviarEscolha("Vulpix");
-    }//GEN-LAST:event_btnVulpixActionPerformed
-
-    private void btnSquirtleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSquirtleActionPerformed
-        enviarEscolha("Squirtle");
-    }//GEN-LAST:event_btnSquirtleActionPerformed
-
-    private void btnStaryuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnStaryuActionPerformed
-        enviarEscolha("Staryu");
-    }//GEN-LAST:event_btnStaryuActionPerformed
-
-    private void btnTreeckoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnTreeckoActionPerformed
-        enviarEscolha("Treecko");
-    }//GEN-LAST:event_btnTreeckoActionPerformed
-
-    private void btnElekidActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnElekidActionPerformed
-        enviarEscolha("Elekid");
-    }//GEN-LAST:event_btnElekidActionPerformed
-
-    private void btnPikachuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPikachuActionPerformed
-        enviarEscolha("Pikachu");
-    }//GEN-LAST:event_btnPikachuActionPerformed
-
-    private void btnDiglettActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDiglettActionPerformed
-        enviarEscolha("Diglett");
-    }//GEN-LAST:event_btnDiglettActionPerformed
-
-    private void btnWooperActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnWooperActionPerformed
-        enviarEscolha("Wooper");
-    }//GEN-LAST:event_btnWooperActionPerformed
-
-    private void btnNumelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnNumelActionPerformed
-        enviarEscolha("Numel");
-    }//GEN-LAST:event_btnNumelActionPerformed
-
-    private void btnRowletActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRowletActionPerformed
-        enviarEscolha("Rowlet");
-    }//GEN-LAST:event_btnRowletActionPerformed
-
-    private void btnEmolgaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEmolgaActionPerformed
-        enviarEscolha("Emolga");
-    }//GEN-LAST:event_btnEmolgaActionPerformed
-
-
-    // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton btnCharmander;
-    private javax.swing.JButton btnDiglett;
-    private javax.swing.JButton btnElekid;
-    private javax.swing.JButton btnEmolga;
-    private javax.swing.JButton btnNumel;
-    private javax.swing.JButton btnPikachu;
-    private javax.swing.JButton btnRowlet;
-    private javax.swing.JButton btnSquirtle;
-    private javax.swing.JButton btnStaryu;
-    private javax.swing.JButton btnTreecko;
-    private javax.swing.JButton btnVulpix;
-    private javax.swing.JButton btnWooper;
-    private javax.swing.JLabel lblLog;
-    // End of variables declaration//GEN-END:variables
 }

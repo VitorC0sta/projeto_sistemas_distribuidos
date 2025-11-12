@@ -16,7 +16,7 @@ public class TCPClientMain {
         this.output = new PrintWriter(this.socket.getOutputStream(), true);
     }
 
-    // Este é o método que vamos usar para enviar "ESCOLHEU:Pikachu"
+    // Este é o método que vamos usar para enviar "ESCOLHEU|Pikachu"
     public void writeMessage(String outMessage) {
         this.output.println(outMessage);
     }
